@@ -1,4 +1,5 @@
 Start time: 12:44
+End time: 5:44
 
 - Create large test dataset
 - Create test script
@@ -50,7 +51,7 @@ Start:
 - Test that server is working
 
 
-Distance:
+Distance formula:
 SELECT ST_Distance_Sphere(`position`, ST_GeomFromText('POINT(-111.38027685 40.67262028)', 4326))
 AS `distance`
 FROM `locations_earth`
