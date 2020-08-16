@@ -1,0 +1,23 @@
+{
+  "name": "sasquatch_api",
+  "version": "0.1.0",
+  "description": "REST API for database of Sasquatch sightings",
+  "main": "index.js",
+  "scripts": {
+    "test": "tape tests/**/*.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/emiljt/sasquatch_api.git"
+  },
+  "keywords": [
+    "sasquatch",
+    "api"
+  ],
+  "author": "Joshua Terrasas <jcterrasas@gmail.com> (https://github.com/emiljt)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/emiljt/sasquatch_api/issues"
+  },
+  "homepage": "https://github.com/emiljt/sasquatch_api#readme"
+}
