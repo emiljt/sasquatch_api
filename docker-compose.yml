@@ -1,13 +1,17 @@
 version: '3'
 services:
-  # api:
-    # image:
-    # container_name:
-    # volumes:
-    # ports:
-    #   - "8080:80"
-    # depends_on:
-    #   - mysqldb
+  api:
+    build: .
+    container_name: sasquatch_api
+    volumes:
+      - ./src:/srv/sasquatch_api/src
+    ports:
+      - "8080:80"
+    environment:
+      - NODE_ENV=development
+    working_dir: /srv/sasquatch_api
+    depends_on:
+      - mysqldb
   mysqldb:
     image: mysql:5.7
     container_name: mysqldb
