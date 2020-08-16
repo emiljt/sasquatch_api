@@ -11,12 +11,6 @@ server.use(restify.plugins.acceptParser(server.acceptable));
 server.use(restify.plugins.queryParser());
 server.use(restify.plugins.bodyParser());
 
-// Test end-point for development
-server.get('/echo/:name', function (req, res, next) {
-  res.send(req.params);
-  return next();
-});
-
 // Sightings end-point
 server.post('/sightings', function (req, res, next) {
   res.send(req.params);
@@ -39,7 +33,7 @@ server.patch('/sightings/:sighting_id', function (req, res, next) {
   return next();
 });
 
-server.delete('/sightings/:sighting_id', function (req, res, next) {
+server.del('/sightings/:sighting_id', function (req, res, next) {
   res.send(req.params);
   return next();
 });
@@ -50,7 +44,7 @@ server.post('/sightings/:sighting_id/tags', function (req, res, next) {
   return next();
 });
 
-server.delete('/sightings/:sighting_id/tags/:tag', function (req, res, next) {
+server.del('/sightings/:sighting_id/tags/:tag', function (req, res, next) {
   res.send(req.params);
   return next();
 });
