@@ -1,6 +1,7 @@
-var restify = require('restify');
+const restify = require('restify');
+const pino = require('restify-pino-logger')();
 
-var sightings_app = require('./sightings_application.js');
+const sightings_app = require('./sightings_application.js');
 
 const server = restify.createServer({
   name: 'sasquatch_api',
@@ -10,6 +11,7 @@ const server = restify.createServer({
 server.use(restify.plugins.acceptParser(server.acceptable));
 server.use(restify.plugins.queryParser());
 server.use(restify.plugins.bodyParser());
+server.use(pino);
 
 // Sightings end-point
 server.post('/sightings', function (req, res, next) {
