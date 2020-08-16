@@ -4,6 +4,7 @@
   "description": "REST API for database of Sasquatch sightings",
   "main": "index.js",
   "scripts": {
+    "start": "node src/index.js",
     "test": "tape tests/**/*.js | tnyan"
   },
   "repository": {
@@ -22,11 +23,11 @@
   "homepage": "https://github.com/emiljt/sasquatch_api#readme",
   "dependencies": {
     "restify": "^8.5.1",
-    "mysql2":"^2.1.0"
+    "mysql2": "^2.1.0"
   },
   "devDependencies": {
     "tape": "^5.0.1",
     "tap-nyan": "^1.1.0",
-    "supertest":"^4.0.2"
+    "supertest": "^4.0.2"
   }
 }

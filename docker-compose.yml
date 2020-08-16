@@ -6,7 +6,7 @@ services:
     volumes:
       - ./src:/srv/sasquatch_api/src
     ports:
-      - "8080:80"
+      - "8080:8080"
     environment:
       - NODE_ENV=development
     working_dir: /srv/sasquatch_api
