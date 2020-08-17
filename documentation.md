@@ -22,9 +22,26 @@ Allows you to add a new sighting to the database.
     + tags (string) - Comma deliminated list of one word (hyphenated words are
     ok) attributes of the sighting
 
-+ Request ()
++ Request (form-data)
+description:This is what happened.
+date:2020-08-16T12:41:00
+latitude:40.402026
+longitude:-111.879444
+tags:woods, scary, noise
 
 + Response 201 (application/json)
+{
+    "id": "b7e6112b-90c2-4487-943f-2e428cfaf50d",
+    "dateSighted": "2020-08-16T12:41:00.000Z",
+    "description": "This is what happened.",
+    "latitude": "40.402026000",
+    "longitude": "-111.879444000",
+    "tags": [
+        "woods",
+        "scary",
+        "noise"
+    ]
+}
 
 ### List All Sightings [GET]
 
@@ -146,7 +163,7 @@ from the selected sighting, and the difference in occurance date are also given.
 
 ## Sighting Neighbors [/sightings/{sighting_id}/neighbors/{neighbor_id}]
 
-### Neighboring Sighting
+### Neighboring Sighting [GET]
 
 Retrieves a neighboring sighing of the selected sighting. Details such as the
 distance between the two, and the difference in occurance dates are given as

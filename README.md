@@ -1,101 +1,155 @@
-# Backend Engineering Challenge
+# Readme
 
-Thank you for your interest in joining the backend team at Jolt! We are a hard working bunch that is eager to learn and implement new technologies while also being willing to maintain legacy code.
+## Database Schema
+Due to the time limit, I didn't end up changing the database schema since it
+worked for the API design I came up with. There are a few thing I would have
+changed though if given the time:
+- I might have added in a normal auto-incrementing database Id. This isn't as
+big of a deal to me as making sure that the "outside facing Id" be a uuid
+though.
+- Add an index to the location field for faster searches for the distance
+related calls. MySQL 5.7 appears to have a bug that causes the database to
+ignore any indexes specified when calculation things like ST_Distance_Sphere.
+- I would have created a separate table for tags. Allow the API behaves just
+fine storing them in a field on the sightings table, having a tags table and
+a foreign keys table for the many to many relationship between sightings and
+tags would greatly speed up queries by tag and allow you to avoid storing
+duplicate data.
 
-***** **STOP** *****
+## Technology Choices
+Environment: Docker
+Language: Javascript
+Runtime: Node.js
+Framework: Restify
+Database Interphase: mysql2
+Logging: Pino
+Tests: Tape, Supertest
+Documentation: API Blueprint
+### Environment
+I've spent a decent amount of time doing dev opts in other jobs, as well as
+with my own servers. I'm a big fan of tools like terraform, containers, vagrant,
+etc. They can make development so much smoother, and help new employees get up
+and running very quickly. In the production environment, containers are bring a
+lot to the table, and I like to have my dev environment match prod as much as
+possible, so using containers would have been my first choice regardless of
+whether it was required or not (though, as a full-time RHEL/Fedora user, I would
+have used buildah and podman).
+### Language & Runtime
+My job for the last three years has been in Ruby, and for the past year I've
+been doing all my personal projects in Rust, so my server-side JS felt awkward.
+In my phone interview they said I could use any language, but the instructions
+in the readme said to pick between JS, PHP, and Java, so I decided to play it
+safe and do the exam in Node. I feel like I could have moved a lot faster in
+Rust simply because it's more fresh on my mind.
+### Framework
+I had heard of Restify before but hadn't used it. It's similar enough to
+Express-like frameworks that I didn't have any issues using it. I've worked in
+Express and Hapi before as well. I went with Restify because it's strictly
+geared towards APIs, so I figured that might help keep things simple, especially
+on a time budget.
+### Mysql2
+They claim to be API compatible with the more popular mysql package, but also
+faster and promise wrapped. I didn't want to use an ORM since they tend to be
+slower in my opinion, more complicated, and don't give you anything if you're
+trying to organize things in a more Domain Driven Design like fashion, which I
+prefer.
+### Logging
+Pino is simple, fast, and has the needed methods for a proper logger (at least
+for this project).
+### Tests
+I used to use tape with my nodejs projects because it was lightweight and output
+in a standardized format (TAP). Tape is very easy to use and doesn't
+over complicate things. I like to write some tests before the actual code, but I
+figured that wouldn't work with the given time frame.
+### Documentation
+The first thing I did when starting this was to design and document the API,
+which took a good amount of my time. I think this is the most important step of
+any project though, especially for something as important as an API. Designing
+before you code is important in any project, but with an API it also allows you
+to start development on the server and client side sanctimoniously. This
+encourages a good separation between them, speeds up development, and enforces
+the contract in a very real way.
+I've used swagger before, and would have been fine using it now, but I decided
+API Blueprint would be a little faster to get up and running with and nicer to
+view regardless of where I stopped.
 
-If you're not familiar with Docker, please spend some time before actually starting the challenge. It will not count against your time. It makes our job *so* much easier if we can simply run `docker-compose up` to run your project. Get familiar with Docker and then start the assessment. Once you're comfortable with working with a `docker-compose.yml` file and a `Dockerfile` file, please proceed:
+## Challenges
+- Like a mentioned earlier, I've worked plenty in JS, but not using it full-time
+for a while made my a lot more sluggish to get going. I had to spend some extra
+getting back up to speed and in the end, I know my code could use some cleanup
+and modernizing with things like async/await. I didn't want to get to hipster on
+it though since I was on a time limit.
+- The challenge wasn't too complicated to be honest, and with a little more time
+I definitely would have it completed it, but there were two things that required
+a lot more thought than the rest. One was designing the API to be as RESTful as
+possible. I try really hard to follow best practices, so I didn't want to add
+"actions" to the end-points, even though a requirement was getting things like
+distance between sightings, etc. This tripped me up a bit during design, but in
+the end, I felt happy with the solution I came up with. I feel it still follows
+best practice of keeping end-points as nouns, but still making it obvious
+where you might find the information needed for the "actions" required.
+- The other challenge (mentioned above) was the location data. I found
+algorithms that allow you to get the distance between two points using latitude
+and longitude, but the application wouldn't scale very well if there wasn't some
+way to narrow results down when searching for points near by each other. I had a
+few ideas for this such as narrowing the results when selecting from the DB by
+the lat/long most significant digit, but in the end discovered that MySQL has
+some built in constructs for this. I hadn't used these before, so I had to spend
+some precious time familiarizing myself, but in the end I wrote a query that
+would allow me to get the top X points, the distance between points, etc.
 
-You have five hours to make as much progress on the challenge as you can. We have designed the challenge so that it can't be completed in five hours, so please don't feel any stress to get it finished.
+Distance between two sightings (using example coordinates which would be replaced by
+the selected sighting and an example Id of the other sighting):
+```
+SELECT ST_Distance_Sphere(`position`, ST_GeomFromText('POINT(-111.38027685 40.67262028)', 4326))
+AS `distance`
+FROM `locations_earth`
+WHERE `id` = 1234;
+```
 
-## Guidelines
-* The purpose of this challenge is to help us evaluate your software engineering skills. We are looking for things like:
-  * How well you architect your project structure
-  * How well your solution might scale under heavy load and/or very large datasets
-  * Do you understand basic programming and database principles
-  * Do you understand best practices
-  * Can you write readable and maintainable code
-  * Can you research and implement new or unfamiliar concepts
-  * Can you clearly explain your thoughts, and document your code
-* You are allowed to use any non-human resource. Ex:
-  * **Allowed:**
-    * StackOverflow
-    * Google
-    * Reference code on Github, etc.
-  * **Not Allowed:**
-    * Chatting or calling your old boss
-    * Using the code of your friend who already took this assessment
-    * Using the code of someone who posted their solution on the internet
+Sightings within range (using example coordinates which would be replaced by
+the selected sighting and an example radius of 100m):
+```
+SELECT ST_Distance_Sphere(`position`, ST_GeomFromText('POINT(-111.38027685 40.67262028)', 4326))
+AS `distance`
+FROM `locations_earth`
+WHERE ST_Distance_Sphere(`position`, ST_GeomFromText('POINT(-111.38027685 40.67262028)', 4326)) <= 100;
+```
 
-## Deliverables
-Once you have completed the challenge (or used the allotted five hours), please fill out this Google form: http://bit.ly/sasquatch-sightings-submissions
-For the code file, please submit a compressed directory with:
-* Code
-* Completed Docker Compose file
-* Readme explaining your database schema, choice of technologies, any challenges, and the API URLs
+Top X closest points (using example coordinates which would be replaced by
+the selected sighting):
+```
+SELECT ST_Distance_Sphere(`position`, ST_GeomFromText('POINT(-111.38027685 40.67262028)', 4326))
+AS `distance`
+FROM `locations_earth`
+LIMIT 10
+ORDER BY `distance`;
+```
 
-## The Challenge
-The "Society to Uncover and Spread the Truth" has hired you to build a backend to track Sasquatch sightings with an API to access this data. They need a system to track sightings, including some metadata about each sighting, and to provide some analytics to help them discover patterns.
-These are their requirements:
+## What Would I change
+- I take security pretty seriously, so parameter sanitizing, SQL injection
+prevention need to be done, as well as authentication (if needed)
+- Rate limiting
+- I would prefer to make this more DDD, which I didn't have time for
+- Add some indexing for the DB to make sure queries are faster, especially with
+the location based stuff
+- Need to add better documentation on possible errors status codes and make sure
+those are being used properly
+- Use HTTP conditional requests for caching
+- Immutable database using the `version` field
+- Version API
+- Make tags a separate table with a many to many relationship
 
-* The database used to store the data should be a MySQL database
-* The API should follow REST or GraphQL best practices
-* The backend should be implemented in one of the following languages: NodeJS, PHP, Java
-* Frameworks: You are free to use any frameworks you feel are appropriate for the task. Also, keep in mind that this is your opportunity to show off your software engineering skill and experience.
-* The API should provide the following endpoints (please build these in this order)
-    1. Manage sightings
-        * Create new sightings, including:
-            * The exact location (latitude and longitude) of the sighting
-            * The time of the sighting
-            * The eye-witness's description of the sighting
-            * A list of some short tags that are pertinent to the sighting, to the eye-witness, or to the geography (for example: "hill", "dark-brown", "cabbage-patch")
-        * Read
-            * All recorded sightings
-            * The details of a single sighting
-        * Update a recorded sighting by:
-            * Changing the location or description
-            * Adding or removing some tabs
-        * Delete a sighting
-    2. Distance
-        * Get the distance between two recorded sightings: API receives two sighting ids, then returns the distance between them
-    3. Search by tags. The client can send a list of one or more tags, and an additional parameter specifying that the API should return
-        * All sightings that match at least one of the tags in the search request, or
-        * All sightings that match all the the tags in the search request
-    4. Closest sightings (you can do these two in either order)
-        * Get all the recorded sightings within a given distance of a certain sighting: API receives a sighting id and a distance, then returns a list of sightings that were within that distance
-        * Get the closest X number of sightings to a given sighting: API receives a sighting id and a number (10 for example), and returns the closest X sightings (closest 10 sightings)
-    5. Improve the "related sightings" endpoint from step 3. Add the ability for the client application and user to specify the following details (make these improvements in any order):
-        * The client can optionally include a list of tags, and the API should only return sightings that have those tags
-        * The client can specify that it only wants sightings that share all tags with the specified sighting
-        * The client can specify that it only wants sightings that share at least one tag with the specified sighting
-        * The client can optionally pass a date range (a start and end date), and the API should only return sightings in that range
-        * The client can optionally pass a date range forward/backward from the specified sighting, and the API should only include sightings in that date range
-    5. If you finish the tasks above (😳), feel free to make any further improvements, or just relax and submit the challenge
+## API URLs
+The host URL is either [::]:8080 or localhost:8080
+The end-points are also documented in `documentation.md`.
 
-When you reach the five hour mark, please stop what you are working on, comment out any unfinished code that breaks the application, and write the required documentation (specified in the Deliverables section).
-
-## Docker Instructions
-
-To simplify setup and to show that you understand (or can at least figure out) Docker, we expect a Docker Compose file that will spin up your backend and port forward so that we can hit your endpoints from localhost. We provide you with a docker compose YAML file that will spin up your MySQL database to help get you started.
-Instructions for docker compose:
-* Make sure docker is installed
-    * For Mac: https://www.docker.com/docker-mac
-    * For Windows: https://www.docker.com/docker-windows
-    * For Ubuntu: https://www.docker.com/docker-ubuntu
-* Make sure you're in the same directory as this readme
-* run `docker-compose up -d`
-    * This will create a container called mysqldb
-    * To verify it was created you can run `docker ps` -- it should show up in the list of containers
-* To tear down your environment you can run `docker-compose down` so that you can spin it from scratch as you make changes
-* In this same directory there is a schemadump.sql file which is where you should put the DDL for creating your schema. The database name is `test` which is consistent with what is specified in the docker-compose.yml file
-* The schemadump.sql script should automatically run when the pod spins up
-    * If you get an error like `ERROR 2002 (HY000): Can't connect to local MySQL server through socket '/var/run/mysqld/mysqld.sock' (2)` then just wait a minute or two for mysql to fully initialize and then try again
-* To bash into your mysql container you can run `docker exec -it mysqldb bash` and you can either login to MySQL with user:root pass:root or user:test pass:test
-* Complete the docker-compose.yml file with your api service
-* Refer to https://docs.docker.com/compose/gettingstarted/ for the official Docker Compose tutorial
-
-## Sample Data
-
-If you want, you may use the sample data in sasquatch-data.tsv as you develop.
-
-Thanks!
+POST /sightings
+GET /sightings
+GET /sightings/:sighting_id
+PATCH /sightings/:sighting_id
+DELETE /sightings/:sighting_id
+GET /sightings/:sighting_id/neighbors
+GET /sightings/:sighting_id/neighbors/:neighbor_id
+POST /sightings/:sighting_id/tags
+DELETE /sightings/:sighting_id/tags/:tag
